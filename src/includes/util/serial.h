@@ -2,6 +2,12 @@
 //Source: https://codeberg.org/jerryjhird/CuoreOS
 //License: MPLv2.0
 
+/*
+This Source Code Form is subject to the terms of the Mozilla Public License, version 2.0.
+If a copy of the MPL was not distributed with this file, You can obtain one at 
+https://mozilla.org/MPL/2.0/.
+*/
+
 #ifndef SERIAL_H
 #define SERIAL_H
 
@@ -9,12 +15,16 @@
 extern "C" {
 #endif
 #include <stddef.h>
-
-#define nl_serial_write(str) serial_write(str, sizeof(str)-1) // no length serial write helper
+#include <stdint.h>
 
 void serial_init(void);
 void serial_write(const char *msg, size_t len);
 void serial_putc(char c);
+
+#ifndef nl_serial_write // defined in panic.h because used to write panic messages
+void serial_write(const char *msg, size_t len);
+#define nl_serial_write(str) serial_write(str, sizeof(str)-1)
+#endif
 
 #ifdef __cplusplus
 }

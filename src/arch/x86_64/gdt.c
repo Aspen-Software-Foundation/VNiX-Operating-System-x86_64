@@ -1,0 +1,204 @@
+/*
+    Copyright (C) 2026 Aspen Software Foundation
+
+    Module: gdt.c
+    Description: GDT module for the VNiX Operating System
+    Author: Mejd Almohammedi 
+
+    All components of the VNiX Operating System, except where otherwise noted, 
+    are copyright of the Aspen Software Foundation (and the corresponding author(s)) and licensed under GPLv2 or later.
+    For more information on the GNU Public License Version 2, please refer to the LICENSE file
+    or to the link provided here: https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html
+
+ * THIS OPERATING SYSTEM IS PROVIDED "AS IS" AND "AS AVAILABLE" UNDER 
+ * THE GNU GENERAL PUBLIC LICENSE VERSION 2, WITHOUT
+ * WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
+ * TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+ * PURPOSE, TITLE, AND NON-INFRINGEMENT.
+ * 
+ * TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, IN NO EVENT SHALL
+ * THE AUTHORS, COPYRIGHT HOLDERS, OR CONTRIBUTORS BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+ * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+ * OR OTHERWISE), ARISING IN ANY WAY OUT OF THE USE OF THIS OPERATING SYSTEM,
+ * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE OPERATING SYSTEM IS
+ * WITH YOU. SHOULD THE OPERATING SYSTEM PROVE DEFECTIVE, YOU ASSUME THE COST OF
+ * ALL NECESSARY SERVICING, REPAIR, OR CORRECTION.
+ *
+ * YOU SHOULD HAVE RECEIVED A COPY OF THE GNU GENERAL PUBLIC LICENSE
+ * ALONG WITH THIS OPERATING SYSTEM; IF NOT, WRITE TO THE FREE SOFTWARE
+ * FOUNDATION, INC., 51 FRANKLIN STREET, FIFTH FLOOR, BOSTON,
+ * MA 02110-1301, USA.
+*/
+
+// Despite the lack of legal requirements, this file is licensed by Nanobyte under the unlicense:
+// https://github.com/nanobyte-dev/nanobyte_os/blob/master/LICENSE
+
+#include "../../includes/arch/x86_64/gdt.h"
+#include <stdint.h>
+#include "../../includes/klibc/stdio.h"
+
+void terminal_set_instance(struct terminal *term, uint32_t fg);
+
+void halt() {
+    uint64_t rip;
+
+    // Read the current instruction pointer into rip
+    __asm__ volatile (
+        "leaq (%%rip), %0"
+        : "=r"(rip)
+    );
+
+    // Print a message with the current RIP
+   kprintf("[ EMERGENCY ] HALTED CPU AT INSTRUCTION: 0x%llx\n", rip);
+
+    // Disable interrupts and halt forever
+    __asm__ volatile (
+        "cli\n"      // disable interrupts
+        "1:\n"
+        "hlt\n"      // halt CPU until next interrupt
+        "jmp 1b\n"   // infinite loop
+    );
+}
+
+// Halt CPU indefinitely but allow interrupts (e.g., for idle loop)
+void halt_interrupts_enabled() {
+    uint64_t rip;
+
+    __asm__ volatile (
+        "leaq (%%rip), %0"
+        : "=r"(rip)
+    );
+
+    kprintf("[ HALT ] Halted CPU at instruction: 0x%llx\n", rip);
+
+    __asm__ volatile (
+        "1:\n"
+        "hlt\n"
+        "jmp 1b\n"
+    );
+}
+
+
+typedef struct {
+    uint16_t LimitLow;                  // limit (bits 0-15)
+    uint16_t BaseLow;                   // base (bits 0-15)
+    uint8_t BaseMiddle;                 // base (bits 16-23)
+    uint8_t Access;                     // access
+    uint8_t FlagsLimitHi;               // limit (bits 16-19) | flags
+    uint8_t BaseHigh;                   // base (bits 24-31)
+} __attribute__((packed)) GDTEntry_t;
+
+typedef struct {
+    uint16_t Limit;                     // sizeof(gdt) - 1
+    GDTEntry_t *Ptr;                    // address of GDT
+} __attribute__((packed)) GDTDescriptor_t;
+
+typedef enum{
+    GDT_ACCESS_CODE_READABLE                = 0x02,
+    GDT_ACCESS_DATA_WRITEABLE               = 0x02,
+
+    GDT_ACCESS_CODE_CONFORMING              = 0x04,
+    GDT_ACCESS_DATA_DIRECTION_NORMAL        = 0x00,
+    GDT_ACCESS_DATA_DIRECTION_DOWN          = 0x04,
+
+    GDT_ACCESS_DATA_SEGMENT                 = 0x10,
+    GDT_ACCESS_CODE_SEGMENT                 = 0x18,
+
+    GDT_ACCESS_DESCRIPTOR_TSS               = 0x00,
+
+    GDT_ACCESS_RING0                        = 0x00,
+    GDT_ACCESS_RING1                        = 0x20,
+    GDT_ACCESS_RING2                        = 0x40,
+    GDT_ACCESS_RING3                        = 0x60,
+
+    GDT_ACCESS_PRESENT                      = 0x80,
+
+} GDT_ACCESS_t;
+
+typedef enum {
+    GDT_FLAG_64BIT                          = 0x20,
+    GDT_FLAG_32BIT                          = 0x40,
+    GDT_FLAG_16BIT                          = 0x00,
+
+    GDT_FLAG_GRANULARITY_1B                 = 0x00,
+    GDT_FLAG_GRANULARITY_4K                 = 0x80,
+} GDT_FLAGS_t;
+
+// Helper macros
+#define GDT_LIMIT_LOW(limit)                (limit & 0xFFFF)
+#define GDT_BASE_LOW(base)                  (base & 0xFFFF)
+#define GDT_BASE_MIDDLE(base)               ((base >> 16) & 0xFF)
+#define GDT_FLAGS_LIMIT_HI(limit, flags)    (((limit >> 16) & 0xF) | (flags & 0xF0))
+#define GDT_BASE_HIGH(base)                 ((base >> 24) & 0xFF)
+
+#define GDT_ENTRY(base, limit, access, flags) {                     \
+    GDT_LIMIT_LOW(limit),                                           \
+    GDT_BASE_LOW(base),                                             \
+    GDT_BASE_MIDDLE(base),                                          \
+    access,                                                         \
+    GDT_FLAGS_LIMIT_HI(limit, flags),                               \
+    GDT_BASE_HIGH(base)                                             \
+}
+
+GDTEntry_t g_GDT[] = {
+    // NULL descriptor
+    GDT_ENTRY(0, 0, 0, 0),
+
+    // Kernel 32-bit code segment
+    GDT_ENTRY(0,
+              0xFFFFF,
+              ((GDT_ACCESS_PRESENT | GDT_ACCESS_RING0) | (GDT_ACCESS_CODE_SEGMENT | GDT_ACCESS_CODE_READABLE)),
+              (GDT_FLAG_64BIT | GDT_FLAG_GRANULARITY_4K)),
+
+    // Kernel 32-bit data segment
+    GDT_ENTRY(0,
+              0xFFFFF,
+              ((GDT_ACCESS_PRESENT | GDT_ACCESS_RING0) | (GDT_ACCESS_DATA_SEGMENT | GDT_ACCESS_DATA_WRITEABLE)),
+              (GDT_FLAG_64BIT | GDT_FLAG_GRANULARITY_4K)),
+
+};
+
+GDTDescriptor_t g_GDTDescriptor = { sizeof(g_GDT) - 1, g_GDT};
+
+void GDT_Load(GDTDescriptor_t *descriptor, uint16_t cs, uint16_t ds)
+{
+    __asm__ __volatile__ (
+        "lgdt (%0)\n"        // load GDT descriptor
+        "movw %1, %%ds\n"    // reload data segments (16-bit)
+        "movw %1, %%es\n"
+        "movw %1, %%fs\n"
+        "movw %1, %%gs\n"
+        "movw %1, %%ss\n"
+        "pushq %2\n"         // push 64-bit code segment for lretq
+        "leaq 1f(%%rip), %%rax\n"
+        "pushq %%rax\n"
+        "lretq\n"            // reload CS
+        "1:\n"
+        :: "r"(descriptor), "r"(ds), "r"((uint64_t)cs)
+        : "rax"
+    );
+}
+
+void GDT_Initialize() {
+    GDT_Load(&g_GDTDescriptor, GDT_CODE_SEGMENT, GDT_DATA_SEGMENT);
+
+    uint16_t cs, ds;
+    __asm__ volatile ("mov %%cs, %0" : "=r"(cs));
+    __asm__ volatile ("mov %%ds, %0" : "=r"(ds));
+
+    if (cs == GDT_CODE_SEGMENT && ds == GDT_DATA_SEGMENT) {
+        kprintf(" [  OK  ] GDT initialized successfully\n");
+        serial_write("[  OK  ] GDT initialized successfully\n", 39);
+    } else {
+        kprintf(" [ FATAL ] Failed to initialize GDT\n");
+        serial_write("[ FATAL ] Failed to initialize GDT, halting...\n", 48);
+        halt();
+        
+    }
+}
