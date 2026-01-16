@@ -44,9 +44,7 @@
 #include <stddef.h>
 
 /**
- * terminal_printf - Formatted output to terminal
- * @format: Format string with optional format specifiers
- * @...: Variable arguments corresponding to format specifiers
+ * terminal_printf - formatted output to terminal
  *
  * Supported format specifiers:
  *   %d - signed decimal integer
@@ -63,7 +61,7 @@
  *   %Nd  - pad with spaces to N width
  *   %0Nd - pad with zeros to N width
  *
- * Note: Depends on terminal_putchar() and itoa() being defined elsewhere
+ * note: depends on terminal_putchar() and itoa() being defined elsewhere
  */
 void kprintf(const char *format, ...);
 struct terminal;
