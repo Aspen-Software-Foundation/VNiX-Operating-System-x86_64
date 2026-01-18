@@ -103,12 +103,6 @@ char *itoa(int32_t value, char *str, uint32_t base) {
 }
 
 
-void exit(int status) {
-
-    (void)status;
-    while(1) halt();
-}
-
 
 int atoi(const char* str) {
     int result = 0;
