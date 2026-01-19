@@ -23,7 +23,6 @@ The required dependencies are as follows:
 - GCC Toolchain
 - QEMU-Full
 - Clang
-- Bear
 - Parted
 
 Note: The method of installing these packages may differ by distribution and operating system. Please refer to the documentation for your distribution and/or OS.

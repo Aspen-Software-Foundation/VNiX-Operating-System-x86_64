@@ -115,4 +115,6 @@ static inline void set_cr3(uint64_t val)
 
 void enable_interrupts();
 void disable_interrupts();
+void halt_interrupts_enabled(void);
+void halt(void);
 #endif

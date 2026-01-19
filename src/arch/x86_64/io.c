@@ -42,6 +42,43 @@
 #include "includes/util/serial.h" 
 #include <stdbool.h> //for the "are_interrupts_enabled" function
 
+void halt() {
+    uint64_t rip;
+
+    __asm__ volatile (
+        "leaq (%%rip), %0"
+        : "=r"(rip)
+    );
+
+   printf("[ EMERGENCY ] HALTED CPU AT INSTRUCTION: %llx\n", rip);
+    serial_printf("[ EMERGENCY ] HALTED CPU AT INSTRUCTION: %llx\n", rip);
+    // just disable interrupts and jump-halt
+    __asm__ volatile (
+        "cli\n"      // disable interrupts
+        "1:\n"
+        "hlt\n"      
+        "jmp 1b\n"   
+    );
+}
+
+void halt_interrupts_enabled() {
+    uint64_t rip;
+
+    __asm__ volatile (
+        "leaq (%%rip), %0"
+        : "=r"(rip)
+    );
+
+    printf("[ HALT ] Halted CPU at instruction: 0x%llx\n", rip);
+        serial_printf("[ HALT ] Halted CPU at instruction: 0x%llx\n", rip);
+
+    __asm__ volatile (
+        "1:\n"
+        "hlt\n"
+        "jmp 1b\n"
+    );
+}
+
 uint8_t inb(uint16_t port) {
     uint8_t ret;
     __asm__ volatile("inb %1, %0" : "=a"(ret) : "Nd"(port));

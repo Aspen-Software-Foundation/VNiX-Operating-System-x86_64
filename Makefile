@@ -1,7 +1,7 @@
 # Copyright (C) 2026 Aspen Software Foundation
 
-# 	Module: kernel.c
-# 	Description: The UEFI kernel for the Ancore Operating System.
+# 	Module: Makefile	
+# 	Description: The Makefile for the Ancore Operating System.
 # 	Author: Yazin Tantawi (and Jerry Jhird)
 
 # 	All components of the Ancore Operating System, except where otherwise noted,
@@ -34,16 +34,16 @@
 # FOUNDATION, INC., 51 FRANKLIN STREET, FIFTH FLOOR, BOSTON,
 # MA 02110-1301, USA.
 
-
 CFLAGS := -I src/ -ffreestanding -Wall -Wextra -Wunused-parameter -static -nostartfiles -nostdlib -fno-pie -no-pie -mno-red-zone -mcmodel=large -T linker.ld -I src/includes/ -I src/includes/klibc/ -I src/drivers/memory/liballoc/ -D_ALLOC_SKIP_DEFINE
+LDFLAGS := -nostdlib -static -z noexecstack
 QEMU_CPU ?=
 QEMU_MEM ?= -m 2G
 
-all: clean kernel build/uefi.iso run
+all: clean kernel build/uefi-usb.img run
 
 kernel:
-#I dont care if this is incorrect, if it works, it works.
 	mkdir -p build
+	@echo "Compiling kernel and drivers..."
 	gcc -ffreestanding -c src/kernel/kernel.c -o build/kernel.o $(CFLAGS)
 	gcc -ffreestanding -c src/drivers/terminal/src/term.c -o build/term.o $(CFLAGS)
 	gcc -ffreestanding -c src/drivers/klibc/stdlib.c -o build/stdlib.o $(CFLAGS) 
@@ -60,49 +60,82 @@ kernel:
 	gcc -ffreestanding -c src/drivers/memory/liballoc-impl.c -o build/liballoc-impl.o $(CFLAGS)
 	gcc -ffreestanding -c src/drivers/memory/vmm.c -o build/vmm.o $(CFLAGS)
 	nasm -f elf64 src/arch/x86_64/isr_stubs.asm -o build/isr_stubs.o
-	ld -T linker.ld -nostdlib -static -o build/kernel.elf build/kernel.o build/term.o build/stdio.o build/stdlib.o  build/serial.o  build/io.o build/idt.o build/gdt.o build/pmm.o build/isr.o build/isrs_gen.o build/isr_stubs.o build/string.o build/liballoc.o build/liballoc-impl.o build/vmm.o
 
-build/uefi.iso: kernel 
-	@printf ">>> Creating UEFI bootable ISO image: $@\n"
-	rm -rf build/iso_root build/efi.img
-	mkdir -p build/iso_root/boot
-	cp limine/limine-bios-cd.bin build/iso_root/boot/
-	cp build/kernel.elf build/iso_root/boot/
-	cp src/limine.conf build/iso_root/
-	cp Assets/wallpaper4k.png build/iso_root/boot/
-	dd if=/dev/zero of=build/efi.img bs=1M count=10
-	mkfs.vfat -F 12 build/efi.img
-	mmd -i build/efi.img ::/EFI
-	mmd -i build/efi.img ::/EFI/BOOT
-	mmd -i build/efi.img ::/boot
-	mcopy -i build/efi.img limine/BOOTX64.EFI ::/EFI/BOOT/
-	mcopy -i build/efi.img build/kernel.elf ::/boot/
-	mcopy -i build/efi.img src/limine.conf ::/
-	mcopy -i build/efi.img Assets/wallpaper4k.png ::/boot/
-	xorriso -as mkisofs \
-		-b boot/limine-bios-cd.bin \
-		-no-emul-boot \
-		-boot-load-size 4 \
-		-boot-info-table \
-		-eltorito-alt-boot \
-		-e efi.img \
-		-no-emul-boot \
-		-isohybrid-gpt-basdat \
-		-o build/uefi.iso \
-		build/iso_root build/efi.img
-	if [ -f limine/limine ]; then ./limine/limine bios-install build/uefi.iso; fi
-	rm -rf build/iso_root build/efi.img
+# After much research, i've concluded on this linking order because it looks much better than the hellish alternative i initially had
+	ld $(LDFLAGS) -T linker.ld -o build/kernel.elf \
+		build/kernel.o \
+		build/term.o \
+		build/stdio.o \
+		build/stdlib.o \
+		build/serial.o \
+		build/io.o \
+		build/idt.o \
+		build/gdt.o \
+		build/pmm.o \
+		build/isr.o \
+		build/isrs_gen.o \
+		build/isr_stubs.o \
+		build/string.o \
+		build/liballoc.o \
+		build/liballoc-impl.o \
+		build/vmm.o
+	objcopy --strip-debug build/kernel.elf
+
+
+build/uefi-usb.img: kernel
+	@echo "Creating raw UEFI image..."
+	
+	rm -rf build/usb_root
+	mkdir -p build/usb_root/EFI/BOOT build/usb_root/boot
+	
+	cp limine/BOOTX64.EFI build/usb_root/EFI/BOOT/
+	cp build/kernel.elf build/usb_root/boot/
+	cp Assets/wallpaper4k.png build/usb_root/boot/ 2>/dev/null || true
+	cp src/limine.conf build/usb_root/
+	
+	echo "fs0:" > build/usb_root/startup.nsh
+	echo "cd \\EFI\\BOOT" >> build/usb_root/startup.nsh
+	echo "BOOTX64.EFI" >> build/usb_root/startup.nsh
+	
+	@echo "Creating FAT32 image..."
+	dd if=/dev/zero of=build/ancoreOS-uefi_dev-prototype.img bs=1M count=64
+	mkfs.fat -F 32 build/ancoreOS-uefi_dev-prototype.img 2>/dev/null || sudo mkfs.fat -F 32 build/ancoreOS-uefi_dev-prototype.img
+
+# I decided to add a little interactive box because why not?
+	@echo "Copying files to image..."
+	mcopy -i build/ancoreOS-uefi_dev-prototype.img -s build/usb_root/* ::
+	@echo ""
+	@echo "IMAGE CREATED at: build/ancoreOS-uefi_dev-prototype.img"
+	@echo ""
+	@echo "TO WRITE TO USB DRIVE:"
+	@echo "sudo dd if=build/ancoreOS-uefi_dev-prototype.img of=/dev/sdX bs=4M status=progress"
+	@echo "Or use a tool like balenaEtcher/Rufus to write the image onto a USB drive."
+	@echo ""
+	@echo "Replace /dev/sdX with your USB device (e.g: /dev/sdb)"
+	@echo "Check with: lsblk or sudo fdisk -l"
+	@echo ""
+	@echo "IMPORTANT: After writing, you MUST:"
+	@echo "1. Go to BIOS/UEFI settings"
+	@echo "2. Disable Secure Boot"
+	@echo "3. Set USB as first boot device "
+	@echo "   (or press F9 for the boot menu if your machine supports it)"
+	@echo "================================================"
+	@echo "Note: this image will NOT work for Non-UEFI/Legacy BIOS systems."
 
 run:
+# I think all devs know this by now but qemu can differ from real hardware, so dont rely on it 100%
 	qemu-system-x86_64 $(if $(QEMU_CPU),-cpu $(QEMU_CPU)) \
 		$(QEMU_MEM) \
 		-bios ovmf/OVMF.fd \
-		-cdrom build/uefi.iso \
+		-drive file=build/ancoreOS-uefi_dev-prototype.img,format=raw \
 		-serial stdio
 
 clean:
 	rm -rf build
 
+
 # generate compile_commands.json for clangd
-cc_commands:
-	bear -- make
+#cc_commands:
+#	bear -- make
+
+# ^^^ This kept looping the build so i disabled it for now. The file is also deleted so dont even bother.

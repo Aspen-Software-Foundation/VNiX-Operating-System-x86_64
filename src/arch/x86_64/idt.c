@@ -44,6 +44,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include "includes/util/serial.h"
+#include "includes/arch/x86_64/io.h"
 
 void terminal_set_instance(struct terminal *term, uint32_t fg);
 
