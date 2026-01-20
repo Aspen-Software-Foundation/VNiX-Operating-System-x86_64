@@ -36,89 +36,136 @@ This is the average root directory for ancoreOS on the user side
   ```
 root-dir:
 ├── A-Documentation
-│   └── 01
-│       └── Introduction
+│   ├── 01
+│   │   └── Introduction
+│   ├── API-ABI
+│   │   └── API-Info
+│   ├── Build-Logs
+│   │   └── Build-Logs
+│   ├── Contributers-Maintainers
+│   │   └── CONTRIBUTERS
+│   ├── Development
+│   │   └── EXE-Support
+│   ├── Error-Codes
+│   │   └── placeholder
+│   └── Other
+│       └── Gaming
+├── Assets
+│   └── wallpaper4k.png
 ├── build
-│   ├── gdt.o
-│   ├── idt.o
-│   ├── io.o
-│   ├── kernel.elf
-│   ├── kernel.o
-│   ├── memory.o
-│   ├── pmm.o
-│   ├── serial.o
-│   ├── stdio.o
-│   ├── term.o
-│   └── uefi.img
-├── compile_commands.json
+│   ├── ancoreOS-uefi_dev-prototype.img
+│   ├── gdt.o
+│   ├── idt.o
+│   ├── io.o
+│   ├── isr.o
+│   ├── isrs_gen.o
+│   ├── isr_stubs.o
+│   ├── kernel.elf
+│   ├── kernel.o
+│   ├── liballoc-impl.o
+│   ├── liballoc.o
+│   ├── log-info.o
+│   ├── pmm.o
+│   ├── serial.o
+│   ├── stdio.o
+│   ├── stdlib.o
+│   ├── string.o
+│   ├── term.o
+│   ├── usb_root
+│   │   ├── boot
+│   │   │   ├── kernel.elf
+│   │   │   └── wallpaper4k.png
+│   │   ├── EFI
+│   │   │   └── BOOT
+│   │   │       └── BOOTX64.EFI
+│   │   ├── limine.conf
+│   │   └── startup.nsh
+│   └── vmm.o
 ├── limine
-│   ├── BOOTAA64.EFI
-│   ├── BOOTIA32.EFI
-│   ├── BOOTLOONGARCH64.EFI
-│   ├── BOOTRISCV64.EFI
-│   ├── BOOTX64.EFI
-│   ├── LICENSE
-│   ├── limine-bios-cd.bin
-│   ├── limine-bios-hdd.h
-│   ├── limine-bios-pxe.bin
-│   ├── limine-bios.sys
-│   ├── limine.c
-│   ├── limine-uefi-cd.bin
-│   └── Makefile
+│   ├── BOOTAA64.EFI
+│   ├── BOOTIA32.EFI
+│   ├── BOOTLOONGARCH64.EFI
+│   ├── BOOTRISCV64.EFI
+│   ├── BOOTX64.EFI
+│   ├── LICENSE
+│   ├── limine-bios-cd.bin
+│   ├── limine-bios-hdd.h
+│   ├── limine-bios-pxe.bin
+│   ├── limine-bios.sys
+│   ├── limine.c
+│   ├── limine-uefi-cd.bin
+│   └── Makefile
 ├── linker.ld
 ├── Makefile
 ├── ovmf
-│   └── OVMF.fd
-└── src
-    ├── arch
-    │   ├── limine.h
-    │   └── x86_64
-    │       ├── gdt.c
-    │       ├── idt.c
-    │       └── io.c
-    ├── drivers
-    │   ├── emul
-    │   │   └── rv_vm.h
-    │   │       ├── LICENSE.md
-    │   │       └── rv_vm.h
-    │   ├── klibc
-    │   │   ├── memory.c
-    │   │   ├── stdio.c
-    │   │   └── string.c
-    │   ├── memory
-    │   │   ├── alloc
-    │   │   │   └── slab-alloc.c
-    │   │   └── pmm.c
-    │   ├── terminal
-    │   │   ├── LICENSE
-    │   │   └── src
-    │   │       ├── cuoreterm.h
-    │   │       ├── kfont.h
-    │   │       └── term.c
-    │   └── util
-    │       └── serial.c
-    ├── includes
-    │   ├── arch
-    │   │   └── x86_64
-    │   │       ├── gdt.h
-    │   │       ├── idt.h
-    │   │       └── io.h
-    │   ├── klibc
-    │   │   ├── memory.h
-    │   │   ├── stdint.h
-    │   │   ├── stdio.h
-    │   │   └── string.h
-    │   ├── memory
-    │   │   ├── alloc
-    │   │   │   └── slab-alloc.h
-    │   │   └── pmm.h
-    │   └── util
-    │       ├── endian.h
-    │       ├── serial.h
-    │       └── util.h
-    ├── kernel
-    │   └── kernel.c
-    └── limine.conf
+│   ├── OVMF_CODE_4M.fd
+│   ├── OVMF.fd
+│   └── OVMF_VARS_4M.fd
+├── README.md
+├── src
+│   ├── arch
+│   │   ├── limine.h
+│   │   └── x86_64
+│   │       ├── gdt.c
+│   │       ├── idt.c
+│   │       ├── io.c
+│   │       ├── isr.c
+│   │       ├── isrs_gen.c
+│   │       └── isr_stubs.asm
+│   ├── drivers
+│   │   ├── emul
+│   │   │   └── rv_vm.h
+│   │   │       ├── LICENSE.md
+│   │   │       └── rv_vm.h
+│   │   ├── klibc
+│   │   │   ├── stdio.c
+│   │   │   ├── stdlib.c
+│   │   │   └── string.c
+│   │   ├── memory
+│   │   │   ├── liballoc
+│   │   │   │   ├── liballoc_1_1.c
+│   │   │   │   ├── liballoc_1_1.h
+│   │   │   │   ├── liballoc.c
+│   │   │   │   └── liballoc.h
+│   │   │   ├── liballoc-impl.c
+│   │   │   ├── pmm.c
+│   │   │   └── vmm.c
+│   │   ├── terminal
+│   │   │   ├── LICENSE
+│   │   │   └── src
+│   │   │       ├── cuoreterm.h
+│   │   │       ├── kfont.h
+│   │   │       └── term.c
+│   │   └── util
+│   │       ├── log-info.c
+│   │       └── serial.c
+│   ├── includes
+│   │   ├── arch
+│   │   │   └── x86_64
+│   │   │       ├── gdt.h
+│   │   │       ├── idt.h
+│   │   │       ├── io.h
+│   │   │       └── isr.h
+│   │   ├── klibc
+│   │   │   ├── stdarg.h
+│   │   │   ├── stdbool.h
+│   │   │   ├── stdint.h
+│   │   │   ├── stdio.h
+│   │   │   ├── stdlib.h
+│   │   │   └── string.h
+│   │   ├── memory
+│   │   │   ├── alloc
+│   │   │   ├── pmm.h
+│   │   │   └── vmm.h
+│   │   └── util
+│   │       ├── endian.h
+│   │       ├── log-info.h
+│   │       ├── serial.h
+│   │       └── util.h
+│   ├── kernel
+│   │   └── kernel.c
+│   └── limine.conf
+
 ```
 ---
 

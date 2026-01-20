@@ -139,14 +139,22 @@ void vmm_test_unmap(void) {
 unmap_page(virt);
 
     //printf("Attempting to access unmapped page...\n");
-    //ptr = (uint64_t *)virt;
-    //*ptr = 0xDEADBEEF;  // this triggers a page fault. DO NOT UNCOMMENT THIS!!!!
+    ptr = (uint64_t *)virt;
+    *ptr = 0xDEADBEEF;  // this triggers a page fault. DO NOT UNCOMMENT THIS!!!!
 
 }
 
 
 vmm_test_mapping();
 vmm_test_unmap();
+
+
+printf("\n=== Starting color tests ===\n");
+LOG(Ok, kernel_main, "Success\n");
+LOG(Warn, kernel_main, "Warning\n");
+LOG(Error, kernel_main, "Error\n");
+LOG(Fatal, kernel_main, "Fatal Error\n");
+
 
     printf("\n=== testing malloc ===\n");
     serial_write("\n=== testing malloc ===\n", 24);
