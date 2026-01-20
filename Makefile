@@ -60,6 +60,11 @@ kernel:
 	gcc -ffreestanding -c src/drivers/memory/liballoc-impl.c -o build/liballoc-impl.o $(CFLAGS)
 	gcc -ffreestanding -c src/drivers/memory/vmm.c -o build/vmm.o $(CFLAGS)
 	gcc -ffreestanding -c src/drivers/util/log-info.c -o build/log-info.o $(CFLAGS)
+	gcc -ffreestanding -c src/drivers/util/math.c -o build/math.o $(CFLAGS)
+	gcc -ffreestanding -c src/drivers/pic/pic.c -o build/pic.o $(CFLAGS)
+	gcc -ffreestanding -c src/drivers/pic/pic_irq.c -o build/pic_irq.o $(CFLAGS)
+	gcc -ffreestanding -c src/drivers/apic/apic.c -o build/apic.o $(CFLAGS)
+	gcc -ffreestanding -c src/drivers/apic/apic_irq.c -o build/apic_irq.o $(CFLAGS)
 	nasm -f elf64 src/arch/x86_64/isr_stubs.asm -o build/isr_stubs.o
 
 # After much research, i've concluded on this linking order because it looks much better than the hellish alternative i initially had
@@ -80,7 +85,12 @@ kernel:
 		build/liballoc.o \
 		build/liballoc-impl.o \
 		build/vmm.o\
-		build/log-info.o
+		build/log-info.o \
+		build/math.o \
+		build/pic.o \
+		build/pic_irq.o \
+		build/apic.o \
+		build/apic_irq.o
 	objcopy --strip-debug build/kernel.elf
 
 

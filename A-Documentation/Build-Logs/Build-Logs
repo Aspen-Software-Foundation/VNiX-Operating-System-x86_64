@@ -28,4 +28,7 @@ Version: dev-prototype
     - Added serial printing for page fault causes
     - Added log-info driver
     - Improved Makefile
+    - Added APIC and PIC drivers
+    - Added math 
+    
     More to come soon.

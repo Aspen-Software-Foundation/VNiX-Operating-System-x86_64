@@ -49,6 +49,8 @@
 #include "includes/memory/pmm.h"
 #include "includes/memory/vmm.h"
 #include "includes/util/log-info.h"
+#include "includes/apic/apic.h"
+#include "includes/apic/apic_irq.h"
 
 static volatile struct limine_framebuffer_request fb_req = {
     .id = LIMINE_FRAMEBUFFER_REQUEST_ID,
@@ -94,6 +96,9 @@ void kernel_main(void) {
     pmm_init();
     enable_interrupts();
     ISR_Initialize();
+    APIC_IRQ_Initialize();
+
+    
 
     void vmm_test_mapping(void) {
     uint64_t virt = 0x1000000000;  // idfk virtual address

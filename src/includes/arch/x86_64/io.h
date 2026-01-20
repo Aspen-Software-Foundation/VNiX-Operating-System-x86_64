@@ -38,6 +38,7 @@
 
 #ifndef IO_H
 #define IO_H
+#define UNUSED_PORT 0x80
 
 #include <stdint.h>
 #include <stddef.h>
@@ -62,6 +63,31 @@ static inline void hcf(void)
     __asm__("hlt");
   }
 }
+
+static inline void iowait() {
+    outb(UNUSED_PORT, 0);
+}
+
+
+static inline void cpuGetMSR(uint32_t msr, uint32_t *eax, uint32_t *edx) {
+    // Inline assembly to read from the MSR
+    asm (
+        "rdmsr" // MSR read instruction
+        : "=a"(*eax), "=d"(*edx) // Output: EAX and EDX will store the 64-bit MSR value
+        : "c"(msr) // Input: MSR to read from
+    );
+}
+
+
+static inline void cpuSetMSR(uint32_t msr, uint32_t eax, uint32_t edx) {
+    // Inline assembly to write to the MSR
+    asm (
+        "wrmsr" // MSR write instruction
+        : // No outputs
+        : "c"(msr), "a"(eax), "d"(edx) // MSR, EAX (lower 32 bits), EDX (upper 32 bits)
+    );
+}
+
 
 typedef struct list_t 
 {
