@@ -59,6 +59,7 @@ kernel:
 	gcc -ffreestanding -c src/drivers/memory/liballoc/liballoc.c -o build/liballoc.o $(CFLAGS) 
 	gcc -ffreestanding -c src/drivers/memory/liballoc-impl.c -o build/liballoc-impl.o $(CFLAGS)
 	gcc -ffreestanding -c src/drivers/memory/vmm.c -o build/vmm.o $(CFLAGS)
+	gcc -ffreestanding -c src/drivers/util/log-info.c -o build/log-info.o $(CFLAGS)
 	nasm -f elf64 src/arch/x86_64/isr_stubs.asm -o build/isr_stubs.o
 
 # After much research, i've concluded on this linking order because it looks much better than the hellish alternative i initially had
@@ -78,7 +79,8 @@ kernel:
 		build/string.o \
 		build/liballoc.o \
 		build/liballoc-impl.o \
-		build/vmm.o
+		build/vmm.o\
+		build/log-info.o
 	objcopy --strip-debug build/kernel.elf
 
 
@@ -121,6 +123,7 @@ build/uefi-usb.img: kernel
 	@echo "   (or press F9 for the boot menu if your machine supports it)"
 	@echo "================================================"
 	@echo "Note: this image will NOT work for Non-UEFI/Legacy BIOS systems."
+	@echo ""
 
 run:
 # I think all devs know this by now but qemu can differ from real hardware, so dont rely on it 100%

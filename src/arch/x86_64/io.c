@@ -41,6 +41,7 @@
 #include <stdio.h>
 #include "includes/util/serial.h" 
 #include <stdbool.h> //for the "are_interrupts_enabled" function
+#include "includes/util/log-info.h"
 
 void halt() {
     uint64_t rip;
@@ -100,11 +101,12 @@ void enable_interrupts(void) {
     __asm__ volatile ("sti");
     
     if (are_interrupts_enabled()) {
-        printf("  [  OK  ] arch/x86_64/io.c: Successfully enabled interrupts\n");
-        serial_printf("[  OK  ] arch/x86_64/io.c: Successfully enabled interrupts\n");
+        LOG(Ok, enable_interrupts, "Successfully enabled interrupts\n");
+        SERIAL(Ok, enable_interrupts, "Successfully enabled interrupts\n");
     } else {
-        printf("  [ FAIL ] arch/x86_64/io.c: Failed to enable interrupts\n");
-        serial_printf("[ FAIL ] arch/x86_64/io.c: Failed to enable interrupts\n");
+        LOG(Error, enable_interrupts, "Failed to enable interrupts\n");
+        SERIAL(Error, enable_interrupts, "Failed to enable interrupts\n");
+        
     }
 }
 
@@ -112,10 +114,10 @@ void disable_interrupts(void) {
     __asm__ volatile ("cli");
     
     if (!are_interrupts_enabled()) {
-        printf("  [  OK  ] arch/x86_64/io.c: Successfully disabled interrupts\n");
-        serial_printf("[  OK  ] arch/x86_64/io.c: Successfully disabled interrupts\n");
+        LOG(Ok, disable_interrupts, "Successfully disabled interrupts\n");
+        SERIAL(Ok, disable_interrupts, "Successfully disabled interrupts\n");
     } else {
-        printf("  [ FAIL ] arch/x86_64/io.c: Failed to disable interrupts\n");
-        serial_printf("[ FAIL ] arch/x86_64/io.c: Failed to disable interrupts\n");
+        LOG(Error, disable_interrupts, "Failed to disable interrupts\n");
+        SERIAL(Error, disable_interrupts, "Failed to disable interrupts\n");
     }
 }

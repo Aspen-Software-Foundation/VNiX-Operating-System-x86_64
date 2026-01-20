@@ -56,7 +56,7 @@ Function: printf
     %0Nd  - Pad with zeros to N width
   
   Returns: None
-
+  
 
 Function: terminal_set_instance
   Signature: void terminal_set_instance(struct terminal *term, uint32_t fg);
@@ -69,6 +69,31 @@ Function: terminal_set_instance
   
   Returns: None
 
+
+  Function: LOG 
+    Signature: void LOG(LogLevel level, const char* function, const char* message);
+
+    Description: Logs a message with a specified log level and function context.
+
+    Parameters:
+      - level: Log level (e.g., Ok, Error, Warning, Info)
+      - function: Name of the function logging the message
+      - message: The string to print
+
+    File: src/drivers/util/log-info.c (or src/includes/util/log-info.h for macros)
+  
+
+  Function: SERIAL 
+    Signature: void SERIAL(LogLevel level, const char* function, const char* message);
+
+    Description: Sends a log message to the serial port with specified log level and function context.
+
+    Parameters:
+      - level: Log level (e.g., Ok, Error, Warning, Info)
+      - function: Name of the function logging the message
+      - message: The string to print
+
+    File: src/drivers/util/log-info.c (or src/includes/util/log-info.h for macros)
 
 ================================================================================
 STANDARD LIBRARY (stdlib)

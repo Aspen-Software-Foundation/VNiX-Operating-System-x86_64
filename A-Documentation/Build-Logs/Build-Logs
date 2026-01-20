@@ -26,4 +26,6 @@ Version: dev-prototype
     - Fixed serial hex printing bugs
     - Improved printf hex printing for 64-bit values
     - Added serial printing for page fault causes
-More to come soon.
+    - Added log-info driver
+    - Improved Makefile
+    More to come soon.

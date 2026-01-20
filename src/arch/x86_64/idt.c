@@ -43,8 +43,8 @@
 #include "includes/arch/x86_64/gdt.h"
 #include <stdio.h>
 #include <stdint.h>
-#include "includes/util/serial.h"
 #include "includes/arch/x86_64/io.h"
+#include "includes/util/log-info.h"
 
 void terminal_set_instance(struct terminal *term, uint32_t fg);
 
@@ -105,11 +105,11 @@ void IDT_Initialize() {
 
     if (current.Ptr == (uint64_t)g_IDTDescriptor.Ptr &&
         current.Limit == g_IDTDescriptor.Limit) {
-        printf("  [  OK  ] arch/x86_64/idt.c:  IDT initialized successfully\n");
-        serial_write("[  OK  ] arch/x86_64/idt.c: IDT initialized successfully\n", 58);
+        LOG(Ok, IDT_Initialize, "IDT initialized successfully\n");
+        SERIAL(Ok, IDT_Initialize, "IDT initialized successfully\n");
     } else {
-        printf(" [ FAIL ] arch/x86_64/idt.c: Failed to initialize IDT\n");
-        serial_write("[ FAIL ] arch/x86_64/idt.c: Failed to initialize IDT, halting...\n", 68);
+        LOG(Error, IDT_Initialize, "Failed to initialize IDT, halting...\n");
+        SERIAL(Error, IDT_Initialize, "Failed to initialize IDT, halting...\n");
         halt(); 
     }
 

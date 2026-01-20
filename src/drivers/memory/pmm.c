@@ -40,7 +40,7 @@
 #include "includes/memory/pmm.h"
 #include "arch/limine.h"
 #include <stdio.h>
-#include "includes/util/serial.h"
+#include "includes/util/log-info.h"
 
 struct PhysicalMemoryRegion *free_mem_head = NULL;
 
@@ -82,8 +82,8 @@ struct limine_memmap_entry **entries = response->entries;
         }
     }
 
-    printf("  [  OK  ] drivers/memory/pmm.c: PMM initialized successfully\n");
-    serial_write("[  OK  ] drivers/memory/pmm.c: PMM initialized successfully\n", 61);
+    LOG(Ok, pmm_init, "PMM initialized successfully\n");
+    SERIAL(Ok, pmm_init, "PMM initialized successfully\n");
 }
 
 uint64_t palloc(void)

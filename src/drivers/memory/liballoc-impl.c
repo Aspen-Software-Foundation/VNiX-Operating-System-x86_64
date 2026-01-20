@@ -42,6 +42,8 @@
 #include <stddef.h>
 #include <stdio.h>
 
+// im also not reconfiguring the printing for any of this because i cba
+
 int liballoc_lock() {
     // TODO: implement spinlock when we have SMP/multithreading
     __asm__ volatile("cli");

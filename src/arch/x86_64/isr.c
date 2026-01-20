@@ -46,6 +46,7 @@
 #include <stdio.h>
 #include "includes/util/serial.h"
 #include <stddef.h>
+#include "includes/util/log-info.h"
 
 ISRHandler_t g_ISRHandlers[256];
 
@@ -62,11 +63,11 @@ void ISR_Initialize() {
         }
     }
 
-    printf("  [  OK  ] arch/x86_64/isr.c: ISR handlers initialized successfully.\n");
-    serial_printf("[  OK  ] arch/x86_64/isr.c: ISR handlers initialized successfully.\n", 70);
+    LOG(Ok, ISR_Initialize, "ISR initialized successfully\n");
+    SERIAL(Ok, ISR_Initialize, "ISR initialized successfully\n");
 }
 
-
+// yeah no im not touching any of this shit, i cannot go through another 8 hours of debugging
 void ISR_Handler(Registers_t *regs) {
     printf("\nISR Handler: Handling interrupt %d\n", regs->interrupt);
     serial_printf("\nISR Handler: Handling interrupt %d\n", regs->interrupt);

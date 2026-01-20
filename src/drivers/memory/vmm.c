@@ -43,14 +43,8 @@
 #include <string.h>
 #include <stdio.h>
 #include "includes/util/serial.h"
+#include "includes/util/log-info.h"
 
-typedef enum result_t {
-    OK
-} result_t;
-
-const char* result_str[] = {
-  [OK] = "[  OK  ]"
-};
 
 extern volatile struct limine_hhdm_request hhdm_request;
 
@@ -76,8 +70,8 @@ void vmm_init(void) {
     }
     
     kernel_pml4 = (uint64_t *)phys_to_virt(cr3);
-    printf("  [  OK  ] drivers/memory/vmm.c: VMM initialized successfully\n");
-    serial_write("[  OK  ] drivers/memory/vmm.c: VMM initialized successfully\n", 61);
+    LOG(Ok, vmm_init, "VMM initialized successfully\n");
+    SERIAL(Ok, vmm_init, "VMM initialized successfully\n");
 }
 
 static uint64_t *alloc_table(void) {

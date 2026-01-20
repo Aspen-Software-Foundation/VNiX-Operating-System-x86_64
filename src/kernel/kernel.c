@@ -48,6 +48,7 @@
 #include "includes/arch/x86_64/isr.h"
 #include "includes/memory/pmm.h"
 #include "includes/memory/vmm.h"
+#include "includes/util/log-info.h"
 
 static volatile struct limine_framebuffer_request fb_req = {
     .id = LIMINE_FRAMEBUFFER_REQUEST_ID,
@@ -85,7 +86,7 @@ void kernel_main(void) {
     serial_write("\nWelcome to the Ancore Operating System, made by Aspen\n", 57);
 
     writestr(&fb_term, "\x1b[#7300FFm  [ debug ]\x1b[0m Successfully initalized kernel\n", 58);
-    serial_write("[ debug ] Successfully initalized kernel\n", 46);
+    SERIAL(Ok, kernel_main, "Successfully initalized kernel\n");
 
     GDT_Initialize();
     IDT_Initialize();
@@ -107,11 +108,11 @@ void kernel_main(void) {
 
     uint64_t value = *ptr;
     if (value == 0x1234567890ABCDEF) {
-        printf("\nVMM test passed: Virtual address maps correctly!\n");
-        serial_write("\nVMM test passed: Virtual address maps correctly!\n", 48);
+        LOG(Ok, vmm_test_mapping, "VMM test passed: Virtual address maps correctly!\n");
+        SERIAL(Ok, vmm_test_mapping, "VMM test passed: Virtual address maps correctly!\n");
     } else {
-        printf("\nVMM test failed: Virtual address mapping is incorrect.\n");
-        serial_write("\nVMM test failed: Virtual address mapping is incorrect.\n", 57);
+        LOG(Error, vmm_test_mapping, "VMM test failed: Virtual address mapping is incorrect\n");
+        SERIAL(Error, vmm_test_mapping, "VMM test failed: Virtual address mapping is incorrect\n");
     }
 }
 
@@ -128,11 +129,11 @@ void vmm_test_unmap(void) {
     //verifies the value
     uint64_t value = *ptr; 
     if (value == 0x1234567890ABCDEF) {
-        printf("VMM test passed: Virtual address mapped and accessed correctly\n");
-        serial_write("VMM test passed: Virtual address mapped and accessed correctly\n", 63);
+        LOG(Ok, vmm_test_unmap, "VMM test passed: Virtual address mapped and accessed correctly\n");
+        SERIAL(Ok, vmm_test_unmap, "Virtual address mapped and accessed correctly\n");
     } else {
-        printf("VMM test failed: Virtual address access failed before unmap\n");
-        serial_write("VMM test failed: Virtual address access failed before unmap\n", 63);
+        LOG(Error, vmm_test_unmap, "VMM test failed: Virtual address access failed before unmap\n");
+        SERIAL(Error, vmm_test_unmap, "VMM test failed: Virtual address access failed before unmap\n");
     }
 
 unmap_page(virt);

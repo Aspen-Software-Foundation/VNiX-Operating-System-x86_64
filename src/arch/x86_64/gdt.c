@@ -42,8 +42,8 @@
 #include "includes/arch/x86_64/gdt.h"
 #include <stdint.h>
 #include <stdio.h>
-#include "includes/util/serial.h"
 #include "includes/arch/x86_64/io.h"
+#include "includes/util/log-info.h"
 
 void terminal_set_instance(struct terminal *term, uint32_t fg);
 
@@ -154,11 +154,11 @@ void GDT_Initialize() {
     __asm__ volatile ("mov %%ds, %0" : "=r"(ds));
 
     if (cs == GDT_CODE_SEGMENT && ds == GDT_DATA_SEGMENT) {
-        printf(" [  OK  ] arch/x86_64/gdt.c: GDT initialized successfully\n");
-        serial_write("[  OK  ] arch/x86_64/gdt.c: GDT initialized successfully\n", 59);
+        LOG(Ok, GDT_Initialize, "GDT initialized successfully\n");
+        SERIAL(Ok, GDT_Initialize, "GDT initialized successfully\n");
     } else {
-        printf(" [ FAIL ] arch/x86_64/gdt.c: Failed to initialize GDT\n");
-        serial_write("[ FAIL ] arch/x86_64/gdt.c: Failed to initialize GDT, halting...\n", 68);
+        LOG(Error, GDT_Initialize, "Failed to initialize GDT, halting...\n");
+        SERIAL(Error, GDT_Initialize, "Failed to initialize GDT, halting...\n");
         halt();
         
     }
