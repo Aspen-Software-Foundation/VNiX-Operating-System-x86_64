@@ -86,12 +86,18 @@ void cuoreterm_init(
     uint32_t fb_height,
     uint32_t fb_pitch,
     uint32_t fb_bpp,
-    uint8_t r_shift, uint8_t g_shift, uint8_t b_shift,
-    uint8_t r_size,  uint8_t g_size,  uint8_t b_size,
+    uint8_t r_shift,
+    uint8_t g_shift,
+    uint8_t b_shift,
+    uint8_t r_size,
+    uint8_t g_size,
+    uint8_t b_size,
+    uint32_t scroll_rows, 
     const uint8_t *font,
     uint32_t font_w,
     uint32_t font_h
-) {
+)
+{
     term->fb_addr   = fb_addr;
     term->fb_width  = fb_width;
     term->fb_height = fb_height;

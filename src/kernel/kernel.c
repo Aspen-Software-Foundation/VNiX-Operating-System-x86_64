@@ -105,11 +105,12 @@ void kernel_main(void) {
          fb->red_mask_size,
          fb->green_mask_size,
          fb->blue_mask_size,
-         iso10_f14_psf,
-         8,
-         14
+         15, // scroll 2 rows at once (faster)
+         iso10_f14_psf, // font we provide for you in kfont.h but can be any psf1 font
+         8, // font width
+         14 // font height
     );
-    
+
 
     serial_init();
     cuoreterm_clear(&fb_term);
