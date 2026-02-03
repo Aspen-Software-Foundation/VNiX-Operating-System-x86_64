@@ -28,7 +28,11 @@ The required dependencies are as follows:
 Note: The method of installing these packages may differ by distribution and operating system. Please refer to the documentation for your distribution and/or OS.
 
 ---
+![A picture of VNiX post-startup, version 0.0.0.1-dev-prototype](limine/Assets/screenshot.png)
 
+
+A picture of VNiX post-startup, version 0.0.0.1-dev-prototype
+---
 ## Directory Structure:
 
 This is the average root directory for VNiX on the user side
