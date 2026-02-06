@@ -1,0 +1,78 @@
+/*
+    Copyright (C) 2026 Aspen Software Foundation
+
+    Module: pic_irq.c
+    Description: PIC IRQ module for the VNiX Operating System
+    Author: Mejd Almohammedi 
+
+    All components of the VNiX Operating System, except where otherwise noted, 
+    are copyright of the Aspen Software Foundation (and the corresponding author(s)) and licensed under GPLv2 or later.
+    For more information on the GNU Public License Version 2, please refer to the LICENSE file
+    or to the link provided here: https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html
+
+ * THIS OPERATING SYSTEM IS PROVIDED "AS IS" AND "AS AVAILABLE" UNDER 
+ * THE GNU GENERAL PUBLIC LICENSE VERSION 2, WITHOUT
+ * WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
+ * TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+ * PURPOSE, TITLE, AND NON-INFRINGEMENT.
+ * 
+ * TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, IN NO EVENT SHALL
+ * THE AUTHORS, COPYRIGHT HOLDERS, OR CONTRIBUTORS BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+ * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+ * OR OTHERWISE), ARISING IN ANY WAY OUT OF THE USE OF THIS OPERATING SYSTEM,
+ * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE OPERATING SYSTEM IS
+ * WITH YOU. SHOULD THE OPERATING SYSTEM PROVE DEFECTIVE, YOU ASSUME THE COST OF
+ * ALL NECESSARY SERVICING, REPAIR, OR CORRECTION.
+ *
+ * YOU SHOULD HAVE RECEIVED A COPY OF THE GNU GENERAL PUBLIC LICENSE
+ * ALONG WITH THIS OPERATING SYSTEM; IF NOT, WRITE TO THE FREE SOFTWARE
+ * FOUNDATION, INC., 51 FRANKLIN STREET, FIFTH FLOOR, BOSTON,
+ * MA 02110-1301, USA.
+*/
+
+#include <stdio.h>
+#include "includes/pic_irq.h"
+#include "includes/pic.h"
+#include "arch/x86_64/includes/io.h"
+#include <stddef.h>
+#include "tools/includes/log-info.h"
+
+#define PIC_REMAP_OFFSET        0xE0
+
+IRQHandler_t g_PICIRQHandler_ts[16];
+
+void PIC_IRQ_Handler(Registers_t* regs) {
+    int irq = regs->interrupt - PIC_REMAP_OFFSET;
+    
+    uint8_t pic_isr = PIC_ReadInServiceRegister();
+    uint8_t pic_irr = PIC_ReadIrqRequestRegister();
+
+    if (g_PICIRQHandler_ts[irq] != NULL) {
+        // handle IRQ
+        g_PICIRQHandler_ts[irq](regs);
+    } else {
+        LOG_WARN("PIC_IRQ_Handler: Unhandled IRQ %d  ISR=%x  IRR=%x...\n", irq, pic_isr, pic_irr);
+        SERIAL(Warn, PIC_IRQ_Handler, "Unhandled IRQ %d  ISR=%x  IRR=%x...\n", irq, pic_isr, pic_irr);
+    }
+
+    // send EOI
+    PIC_SendEndOfInterrupt(irq);
+}
+
+void PIC_IRQ_Initialize() {
+    PIC_Configure(PIC_REMAP_OFFSET, PIC_REMAP_OFFSET + 8);
+
+    // register ISR handlers for each of the 16 irq lines
+    for (int i = 0; i < 16; i++)
+        ISR_RegisterHandler(PIC_REMAP_OFFSET + i, PIC_IRQ_Handler);
+}
+
+void PIC_IRQ_RegisterHandler(int irq, IRQHandler_t handler) {
+    g_PICIRQHandler_ts[irq] = handler;
+}

@@ -42,54 +42,74 @@ MAGENTA := \033[0;35m
 CYAN   := \033[0;36m
 NC     := \033[0m  # No Color
 
-CFLAGS := -I src/ -ffreestanding -Wall -Wextra -Wunused-parameter -Wimplicit-function-declaration -static -nostartfiles -nostdlib -fno-pie -no-pie -mno-red-zone -mcmodel=large -T linker.ld -I src/includes/ -I src/includes/klibc/ -I src/drivers/memory/liballoc/ -I limine -D_ALLOC_SKIP_DEFINE
-LDFLAGS := -nostdlib -static -z noexecstack
+CFLAGS := \
+	-I . \
+	-I klibc/includes \
+	-nostdinc \
+	-ffreestanding \
+	-Wall -Wextra -Wunused-parameter -Wimplicit-function-declaration \
+	-fno-pie -no-pie \
+	-mno-red-zone \
+	-mcmodel=large \
+	-D_ALLOC_SKIP_DEFINE
+
+LDFLAGS := \
+	-nostdlib \
+	-static \
+	-z noexecstack \
+	-T linker.ld
 QEMU_CPU ?=
 QEMU_MEM ?= -m 1G
 
-all: clean kernel build/uefi-usb.img 
+all: clean build/kernel.elf build/uefi-usb.img 
 
-kernel:
+# Yes, yes, i know this is horrendous, but i dont care enough to change it, since it works.
+
+build/kernel.elf:
 	mkdir -p build
 	@echo "$(CYAN)=-=-=-=-=-=-=-=-=-=-=-=-=-=-$(NC)"
 	@echo "$(YELLOW)Compiling kernel and drivers...$(NC)"
-	gcc -c src/kernel/kernel.c -o build/kernel.o $(CFLAGS)
-	gcc -c src/drivers/terminal/src/flanterm.c -o build/flanterm.o $(CFLAGS)
-	gcc -c src/drivers/terminal/src/flanterm_backends/fb.c -o build/fb.o $(CFLAGS)
-	gcc -c src/drivers/klibc/string.c -o build/string.o $(CFLAGS)
-	gcc -c src/drivers/klibc/stdio.c -o build/stdio.o $(CFLAGS)
-	gcc -c src/drivers/klibc/stdlib.c -o build/stdlib.o $(CFLAGS)
-	gcc -c src/drivers/memory/heapalloc/tlsf.c -o build/tlsf.o $(CFLAGS) 
-	gcc -c src/util/log-info.c -o build/log-info.o $(CFLAGS) 
-	gcc -c src/util/serial.c -o build/serial.o $(CFLAGS) 
-	gcc -c src/arch/x86_64/gdt.c -o build/gdt.o $(CFLAGS)
-	gcc -c src/arch/x86_64/idt.c -o build/idt.o $(CFLAGS)
-	gcc -c src/arch/x86_64/io.c -o build/io.o $(CFLAGS)
-	gcc -c src/drivers/memory/pmm.c -o build/pmm.o $(CFLAGS)
-	gcc -c src/drivers/memory/vmm.c -o build/vmm.o $(CFLAGS)
-	gcc -c src/arch/x86_64/isr.c -o build/isr.o $(CFLAGS)
-	gcc -c src/arch/x86_64/isrs_gen.c -o build/isrs_gen.o $(CFLAGS)
-	gcc -c src/drivers/pic/pic.c -o build/pic.o $(CFLAGS)
-	gcc -c src/drivers/pic/pic_irq.c -o build/pic_irq.o $(CFLAGS)
-	gcc -c src/drivers/shell/keyboard.c -o build/keyboard.o $(CFLAGS)
-	gcc -c src/drivers/storage/storage.c -o build/storage.o $(CFLAGS)
-	gcc -c src/drivers/storage/sata.c -o build/sata.o $(CFLAGS)
-	gcc -c src/drivers/pic/apic/apic.c -o build/apic.o $(CFLAGS)
-	gcc -c src/drivers/pic/apic/apic_irq.c -o build/apic_irq.o $(CFLAGS)
-	gcc -c src/drivers/storage/ata.c -o build/ata.o $(CFLAGS)
-	gcc -c src/drivers/storage/stinit.c -o build/stinit.o $(CFLAGS)
-	gcc -c src/drivers/storage/atapi.c -o build/atapi.o $(CFLAGS)
-	gcc -c src/drivers/time/time.c -o build/time.o $(CFLAGS)
-	gcc -c src/drivers/shell/shell.c -o build/shell.o $(CFLAGS)
-	gcc -c src/util/pit.c -o build/pit.o $(CFLAGS)
-	gcc -c src/drivers/time/tsc.c -o build/tsc.o $(CFLAGS)
-	gcc -c src/drivers/hci/ehci.c -o build/ehci.o $(CFLAGS)
-	gcc -c src/drivers/pci/pci.c -o build/pci.o $(CFLAGS)
-	nasm -f elf64 src/arch/x86_64/isr_stubs.asm -o build/isr_stubs.o
+	gcc -c kernel/kernel.c -o build/kernel.o $(CFLAGS)
+	gcc -c kernel/terminal/src/flanterm.c -o build/flanterm.o $(CFLAGS)
+	gcc -c kernel/terminal/src/flanterm_backends/fb.c -o build/fb.o $(CFLAGS)
+	gcc -c klibc/string.c -o build/string.o $(CFLAGS)
+	gcc -c klibc/limits.c -o build/limits.o $(CFLAGS)
+	gcc -c klibc/stdio.c -o build/stdio.o $(CFLAGS)
+	gcc -c klibc/stdlib.c -o build/stdlib.o $(CFLAGS)
+	gcc -c mm/heapalloc/tlsf.c -o build/tlsf.o $(CFLAGS) 
+	gcc -c tools/log-info.c -o build/log-info.o $(CFLAGS) 
+	gcc -c tools/serial.c -o build/serial.o $(CFLAGS) 
+	gcc -c arch/x86_64/gdt.c -o build/gdt.o $(CFLAGS)
+	gcc -c arch/x86_64/idt.c -o build/idt.o $(CFLAGS)
+	gcc -c arch/x86_64/io.c -o build/io.o $(CFLAGS)
+	gcc -c mm/pmm.c -o build/pmm.o $(CFLAGS)
+	gcc -c mm/vmm.c -o build/vmm.o $(CFLAGS)
+	gcc -c arch/x86_64/isr.c -o build/isr.o $(CFLAGS)
+	gcc -c arch/x86_64/isrs_gen.c -o build/isrs_gen.o $(CFLAGS)
+	gcc -c drivers/pic/pic.c -o build/pic.o $(CFLAGS)
+	gcc -c drivers/pic/pic_irq.c -o build/pic_irq.o $(CFLAGS)
+	gcc -c kernel/shell/keyboard.c -o build/keyboard.o $(CFLAGS)
+	gcc -c kernel/storage/storage.c -o build/storage.o $(CFLAGS)
+	gcc -c kernel/storage/sata.c -o build/sata.o $(CFLAGS)
+	gcc -c drivers/pic/apic/apic.c -o build/apic.o $(CFLAGS)
+	gcc -c drivers/pic/apic/apic_irq.c -o build/apic_irq.o $(CFLAGS)
+	gcc -c kernel/storage/ata.c -o build/ata.o $(CFLAGS)
+	gcc -c kernel/storage/stinit.c -o build/stinit.o $(CFLAGS)
+	gcc -c kernel/storage/atapi.c -o build/atapi.o $(CFLAGS)
+	gcc -c kernel/time/time.c -o build/time.o $(CFLAGS)
+	gcc -c kernel/shell/shell.c -o build/shell.o $(CFLAGS)
+	gcc -c tools/pit.c -o build/pit.o $(CFLAGS)
+	gcc -c kernel/time/tsc.c -o build/tsc.o $(CFLAGS)
+	gcc -c kernel/system/syscalls.c -o build/syscalls.o $(CFLAGS)
+	gcc -c drivers/hci/ehci.c -o build/ehci.o $(CFLAGS)
+	gcc -c drivers/pci/pci.c -o build/pci.o $(CFLAGS)
+	nasm -f elf64 arch/x86_64/isr_stubs.asm -o build/isr_stubs.o
+	nasm -f elf64 kernel/system/includes/asm/syscalls-asm.s -o build/syscalls-asm.o
+	
 # After much research, i've concluded on this linking order because it looks much better than the hellish alternative i initially had
 	@echo "$(CYAN)=-=-=-=-=-=-=-=-=-=-=-=-=-=-$(NC)"
 	@echo "$(GREEN)Linking kernel...$(NC)"
-	ld $(LDFLAGS) -T linker.ld -o build/kernel.elf \
+	ld $(LDFLAGS) -o build/kernel.elf \
 		build/kernel.o \
 		build/flanterm.o \
 		build/fb.o \
@@ -123,6 +143,10 @@ kernel:
 		build/pit.o\
 		build/pci.o\
 		build/ehci.o\
+		build/limits.o\
+		build/syscalls-asm.o\
+		build/syscalls.o
+
 
 	@echo "$(MAGENTA)Stripping debug info...$(NC)"
 	objcopy --strip-debug build/kernel.elf
@@ -135,28 +159,28 @@ build/uefi-usb.img: kernel
 	rm -rf build/usb_root
 	mkdir -p build/usb_root/EFI/BOOT build/usb_root/boot
 	
-	cp limine/BOOTX64.EFI build/usb_root/EFI/BOOT/
+	cp boot/BOOTX64.EFI build/usb_root/EFI/BOOT/
 	cp build/kernel.elf build/usb_root/boot/
-	cp limine/Assets/wallpaper4k.png build/usb_root/boot/ 2>/dev/null || true
-	cp src/limine.conf build/usb_root/
+	cp boot/Assets/wallpaper4k.png build/usb_root/boot/ 2>/dev/null || true
+	cp boot/Assets/limine.conf build/usb_root/
 	
 	echo "fs0:" > build/usb_root/startup.nsh
 	echo "cd \\EFI\\BOOT" >> build/usb_root/startup.nsh
 	echo "BOOTX64.EFI" >> build/usb_root/startup.nsh
 	@echo "$(CYAN)=-=-=-=-=-=-=-=-=-=-=-=-=-=-$(NC)"
 	@echo "$(YELLOW)Creating FAT32 image...$(NC)"
-	dd if=/dev/zero of=build/VNiX-uefi_dev-prototype.img bs=1080K count=64
-	mkfs.fat -F 32 build/VNiX-uefi_dev-prototype.img 2>/dev/null || sudo mkfs.fat -F 32 build/VNiX-uefi_dev-prototype.img
+	dd if=/dev/zero of=build/VNiX-uefi_0.10-pre.img bs=1080K count=64
+	mkfs.fat -F 32 build/VNiX-uefi_0.10-pre.img 2>/dev/null || sudo mkfs.fat -F 32 build/VNiX-uefi_0.10-pre.img
 
 # I decided to add a little interactive box because why not?
 	@echo "$(CYAN)=-=-=-=-=-=-=-=-=-=-=-=-=-=-$(NC)"
 	@echo "$(GREEN)Copying files to image...$(NC)"
-	mcopy -i build/VNiX-uefi_dev-prototype.img -s build/usb_root/* ::
+	mcopy -i build/VNiX-uefi_0.10-pre.img -s build/usb_root/* ::
 	@echo ""
-	@echo "$(MAGENTA)IMAGE CREATED at: build/VNiX-uefi_dev-prototype.img$(NC)"
+	@echo "$(MAGENTA)IMAGE CREATED at: build/VNiX-uefi_0.10-pre.img$(NC)"
 	@echo ""
 	@echo "$(YELLOW)TO WRITE TO USB DRIVE:$(NC)"
-	@echo "sudo dd if=build/VNiX-uefi_dev-prototype.img of=/dev/sdX bs=4M status=progress"
+	@echo "sudo dd if=build/VNiX-uefi_0.10-pre.img of=/dev/sdX bs=4M status=progress"
 	@echo "Or use a tool like balenaEtcher or Rufus to write the image onto a USB drive."
 	@echo ""
 	@echo "Replace /dev/sdX with your USB device (e.g: /dev/sdb)"
@@ -177,10 +201,10 @@ run:
 # I think all devs know this by now but qemu can differ from real hardware, so dont rely on it 100%
 	qemu-system-x86_64 $(if $(QEMU_CPU),-cpu $(QEMU_CPU)) \
 		$(QEMU_MEM) \
-		-bios ovmf/OVMF.fd \
+		-bios boot/Assets/ovmf/OVMF.fd \
 		-usb \
     	-device usb-ehci,id=ehci \
-		-drive file=build/VNiX-uefi_dev-prototype.img,format=raw \
+		-drive file=build/VNiX-uefi_0.10-pre.img,format=raw \
 		-serial stdio
 
 clean:

@@ -1,8 +1,0 @@
-The things we plan/need to implement:
-
-TODO: Add licensing to the storage implementation
-
-
-TODO: Add a VFS (note: we need to upgrade keyboard.h/.c after time)
-TODO: ext2, then userspace
-TODO: After userpace, we need a shell (bash)

@@ -80,7 +80,7 @@ Function: terminal_set_instance
       - function: Name of the function logging the message
       - message: The string to print
 
-    File: src/drivers/util/log-info.c (or src/includes/util/log-info.h for macros)
+    File: drivers/tools/log-info.c (or tools/log-info.h for macros)
   
 
   Function: SERIAL 
@@ -93,7 +93,7 @@ Function: terminal_set_instance
       - function: Name of the function logging the message
       - message: The string to print
 
-    File: src/drivers/util/log-info.c (or src/includes/util/log-info.h for macros)
+    File: drivers/tools/log-info.c (or tools/log-info.h for macros)
 
 ================================================================================
 STANDARD LIBRARY (stdlib)
@@ -768,7 +768,7 @@ The kernel uses Limine bootloader protocol for UEFI boot. Key requests include:
   Module Request        - Loaded modules
   Entry Point Request   - Kernel entry point
 
-See src/arch/limine.h for full Limine protocol definitions.
+See arch/limine.h for full Limine protocol definitions.
 
 
 ================================================================================

@@ -28,10 +28,10 @@ The required dependencies are as follows:
 Note: The method of installing these packages may differ by distribution and operating system. Please refer to the documentation for your distribution and/or OS.
 
 ---
-![A picture of VNiX post-startup, version 0.0.0.1-dev-prototype](limine/Assets/screenshot.png)
+![A picture of VNiX post-startup, version 0.10-pre](boot/Assets/screenshot.png)
 
 
-A picture of VNiX post-startup, version 0.0.0.1-dev-prototype
+A picture of VNiX post-startup, version 0.10-pre
 ---
 ## Directory Structure:
 
@@ -39,143 +39,159 @@ This is the average root directory for VNiX on the user side
 
   ```
 root-dir:
-├── A-Documentation
 │   ├── 01
 │   │   └── Introduction
 │   ├── API-ABI
 │   │   └── API-Info
-│   ├── Build-Logs
-│   │   └── Build-Logs
-│   ├── Contributers-Maintainers
-│   │   └── CONTRIBUTORS
 │   ├── Development
 │   │   └── EXE-Support
 │   ├── Error-Codes
 │   │   └── placeholder
 │   └── Other
 │       └── Gaming
-├── limine
+├── arch
+│   └── x86_64
+│       ├── gdt.c
+│       ├── idt.c
+│       ├── includes
+│       │   ├── gdt.h
+│       │   ├── idt.h
+│       │   ├── io.h
+│       │   └── isr.h
+│       ├── io.c
+│       ├── isr.c
+│       ├── isrs_gen.c
+│       └── isr_stubs.asm
+├── boot
 │   ├── Assets
+│   │   ├── limine.conf
+│   │   ├── ovmf
+│   │   │   └── OVMF.fd
+│   │   ├── screenshot.png
 │   │   └── wallpaper4k.png
 │   ├── BOOTX64.EFI
 │   ├── limine-bios-hdd.h
 │   ├── limine.c
 │   └── limine.h
-├── linker.ld
-├── Makefile
-├── ovmf
-│   └── OVMF.fd
-├── README.md
-├── src
-│   ├── arch
-│   │   └── x86_64
-│   │       ├── gdt.c
-│   │       ├── idt.c
-│   │       ├── io.c
-│   │       ├── isr.c
-│   │       ├── isrs_gen.c
-│   │       └── isr_stubs.asm
-│   ├── drivers
-│   │   ├── klibc
-│   │   │   ├── stdio.c
-│   │   │   ├── stdlib.c
-│   │   │   └── string.c
-│   │   ├── memory
-│   │   │   ├── heapalloc
-│   │   │   │   ├── tlsf.c
-│   │   │   │   └── tlsf.h
-│   │   │   ├── pmm.c
-│   │   │   └── vmm.c
-│   │   ├── pci
-│   │   │   └── pci.c
-│   │   ├── pic
-│   │   │   ├── apic
-│   │   │   │   ├── apic.c
-│   │   │   │   └── apic_irq.c
-│   │   │   ├── pic.c
-│   │   │   └── pic_irq.c
-│   │   ├── shell
-│   │   │   ├── keyboard.c
-│   │   │   └── shell.c
-│   │   ├── storage
-│   │   │   ├── ata.c
-│   │   │   ├── atapi.c
-│   │   │   ├── sata.c
-│   │   │   ├── stinit.c
-│   │   │   └── storage.c
-│   │   ├── terminal
-│   │   │   └── src
-│   │   │       ├── flanterm_backends
-│   │   │       │   ├── fb.c
-│   │   │       │   ├── fb.h
-│   │   │       │   └── fb_private.h
-│   │   │       ├── flanterm.c
-│   │   │       ├── flanterm.h
-│   │   │       └── flanterm_private.h
-│   │   └── time
-│   │       └── time.c
-│   ├── includes
-│   │   ├── arch
-│   │   │   └── x86_64
-│   │   │       ├── gdt.h
-│   │   │       ├── idt.h
-│   │   │       ├── io.h
-│   │   │       └── isr.h
-│   │   ├── fs
-│   │   │   └── filesystem.h
-│   │   ├── hci
-│   │   │   └── ehci.h
-│   │   ├── klibc
-│   │   │   ├── ctype.h
-│   │   │   ├── errno.h
-│   │   │   ├── signal.h
-│   │   │   ├── stdarg.h
-│   │   │   ├── stdbool.h
-│   │   │   ├── stddef.h
-│   │   │   ├── stdint.h
-│   │   │   ├── stdio.h
-│   │   │   ├── stdlib.h
-│   │   │   ├── string.h
-│   │   │   └── sys
-│   │   │       └── types.h
-│   │   ├── memory
-│   │   │   ├── pmm.h
-│   │   │   └── vmm.h
-│   │   ├── pci
+├── CHANGES
+├── CONTRIBUTORS
+├── drivers
+│   ├── emul
+│   │   └── rv_vm.h
+│   │       ├── LICENSE.md
+│   │       └── rv_vm.h
+│   ├── hci
+│   │   ├── ehci.c
+│   │   └── includes
+│   │       └── ehci.h
+│   ├── pci
+│   │   ├── includes
 │   │   │   └── pci.h
-│   │   ├── pic
-│   │   │   ├── apic
-│   │   │   │   ├── apic.h
-│   │   │   │   └── apic_irq.h
-│   │   │   ├── pic.h
-│   │   │   └── pic_irq.h
-│   │   ├── shell
+│   │   └── pci.c
+│   └── pic
+│       ├── apic
+│       │   ├── apic.c
+│       │   └── apic_irq.c
+│       ├── includes
+│       │   ├── apic
+│       │   │   ├── apic.h
+│       │   │   └── apic_irq.h
+│       │   ├── pic.h
+│       │   └── pic_irq.h
+│       ├── pic.c
+│       └── pic_irq.c
+├── fs
+│   └── filesystem.h
+├── kernel
+│   ├── kernel.c
+│   ├── shell
+│   │   ├── includes
 │   │   │   ├── keyboard.h
 │   │   │   ├── keyboard_macros.h
 │   │   │   └── shell.h
-│   │   ├── storage
+│   │   ├── keyboard.c
+│   │   └── shell.c
+│   ├── storage
+│   │   ├── ata.c
+│   │   ├── atapi.c
+│   │   ├── includes
 │   │   │   ├── ata.h
 │   │   │   ├── atapi.h
 │   │   │   ├── sata.h
 │   │   │   ├── scsi.h
 │   │   │   ├── stinit.h
 │   │   │   └── storage.h
-│   │   └── time
-│   │       └── time.h
-│   ├── kernel
-│   │   └── kernel.c
-│   ├── limine.conf
-│   └── util
-│       ├── includes
-│       │   ├── endian.h
-│       │   ├── log-info.h
-│       │   ├── math.h
-│       │   ├── serial.h
-│       │   └── util.h
-│       ├── log-info.c
-│       ├── math.c
-│       └── serial.c
-└── TODO
+│   │   ├── sata.c
+│   │   ├── stinit.c
+│   │   └── storage.c
+│   ├── system
+│   │   ├── includes
+│   │   │   ├── segment.h
+│   │   │   └── system.h
+│   │   └── sched.c
+│   ├── terminal
+│   │   └── src
+│   │       ├── flanterm_backends
+│   │       │   ├── fb.c
+│   │       │   ├── fb.h
+│   │       │   └── fb_private.h
+│   │       ├── flanterm.c
+│   │       ├── flanterm.h
+│   │       └── flanterm_private.h
+│   ├── time
+│   │   ├── includes
+│   │   │   ├── time.h
+│   │   │   └── tsc.h
+│   │   ├── time.c
+│   │   └── tsc.c
+│   └── vnix
+│       └── PLACEHOLDER
+├── klibc
+│   ├── assert.c
+│   ├── includes
+│   │   ├── assert.h
+│   │   ├── ctype.h
+│   │   ├── errno.h
+│   │   ├── limits.h
+│   │   ├── signal.h
+│   │   ├── stdarg.h
+│   │   ├── stdbool.h
+│   │   ├── stddef.h
+│   │   ├── stdint.h
+│   │   ├── stdio.h
+│   │   ├── stdlib.h
+│   │   ├── string.h
+│   │   └── sys
+│   │       └── types.h
+│   ├── limits.c
+│   ├── stdio.c
+│   ├── stdlib.c
+│   └── string.c
+├── linker.ld
+├── Makefile
+├── mm
+│   ├── heapalloc
+│   │   ├── tlsf.c
+│   │   └── tlsf.h
+│   ├── includes
+│   │   ├── pmm.h
+│   │   └── vmm.h
+│   ├── pmm.c
+│   └── vmm.c
+├── README.md
+└── tools
+    ├── includes
+    │   ├── endian.h
+    │   ├── log-info.h
+    │   ├── math.h
+    │   ├── pit.h
+    │   ├── printk.h
+    │   ├── serial.h
+    │   └── util.h
+    ├── log-info.c
+    ├── math.c
+    ├── pit.c
+    └── serial.c
 
 ```
 ---
